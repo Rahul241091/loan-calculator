@@ -1,0 +1,219 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Home Loan Calculator - Tabbed Layout</title>
+<style>
+    body {
+      background-color: #f5f7fa;
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      display: flex;
+      max-width: 1000px;
+      margin: auto;
+      gap: 20px;
+    }
+    .tabs, .summary {
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      padding: 20px;
+    }
+    .tabs {
+      flex: 1;
+      min-width: 300px;
+    }
+    .summary {
+      flex: 1;
+      min-width: 280px;
+    }
+    h1 {
+      text-align: center;
+      color: #2b7cff;
+    }
+    label {
+      font-weight: 500;
+      margin-top: 12px;
+      display: block;
+    }
+    input[type=number], select, input[type=range] {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      margin-bottom: 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: #2b7cff;
+      border: none;
+      color: white;
+      font-size: 1rem;
+      font-weight: bold;
+      border-radius: 6px;
+      margin-top: 20px;
+      cursor: pointer;
+    }
+    .helper {
+      font-size: 0.85rem;
+      color: #666;
+      margin-top: -5px;
+      margin-bottom: 10px;
+    }
+    .result p {
+      margin: 0.5rem 0;
+    }
+    .result h3 {
+      color: #2b7cff;
+    }
+  
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+      }
+    }
+    </style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script></head>
+<body>
+<h1>Home Loan Calculator</h1>
+<div class="container">
+<div class="tabs">
+<label for="propertyValueSlider">Property Value (₹):</label>
+<input id="propertyValueSlider" max="13000000" min="7500000" step="100000" type="range" value="10000000"/>
+<input id="propertyValue" readonly="" type="number" value="10000000"/>
+<div class="helper" id="propertyValueInWords">(1 cr)</div>
+<label for="brokerage">Brokerage (%):</label>
+<select id="brokerage" onchange="calculateLoan()">
+<option selected="" value="1">1%</option>
+<option value="2">2%</option>
+</select>
+<label for="govCharges">Government Charges (%):</label>
+<select id="govCharges" onchange="calculateLoan()">
+<option selected="" value="7">7%</option>
+<option value="8">8%</option>
+<option value="9">9%</option>
+<option value="10">10%</option>
+</select>
+<label><input id="includeRenovation" onchange="calculateLoan()" type="checkbox"/> Include Renovation Cost</label>
+<input id="renovationCost" max="2000000" min="0" oninput="calculateLoan()" type="number" value="0"/>
+<div class="helper">(Optional: Add up to ₹20 lakh for home renovation)</div>
+<label for="downPayment">Down Payment (₹):</label>
+<input id="downPayment" min="1000000" oninput="calculateLoan()" step="100000" type="number" value="2500000"/>
+<label for="interestRate">Interest Rate (%):</label>
+<input id="interestRate" max="9" min="8.2" oninput="calculateLoan()" step="0.01" type="number" value="8.4"/>
+<label for="tenure">Loan Tenure (Years):</label>
+
+<select id="tenure" onchange="calculateLoan()">
+<option value="15">15</option>
+<option selected="" value="20">20</option>
+<option value="25">25</option>
+</select>
+</div>
+<div class="summary">
+<div class="result" id="result" style="display:block;"></div>
+<canvas height="300" id="loanChart" style="margin-top: 20px;" width="400"></canvas></div>
+</div>
+<script>
+    function convertToWords(amount) {
+      const crore = Math.floor(amount / 10000000);
+      const lakh = Math.floor((amount % 10000000) / 100000);
+      let parts = [];
+      if (crore > 0) parts.push(crore + " cr");
+      if (lakh > 0) parts.push(lakh + " lakh");
+      return parts.join(' ') || "0";
+    }
+
+    function updateSliderAndDisplay() {
+      const slider = document.getElementById("propertyValueSlider");
+      const value = parseInt(slider.value);
+      document.getElementById("propertyValue").value = value;
+      document.getElementById("propertyValueInWords").innerText = "(" + convertToWords(value) + ")";
+      calculateLoan();
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+      document.getElementById("propertyValueSlider").addEventListener("input", updateSliderAndDisplay);
+      updateSliderAndDisplay(); // Initial run
+    });
+
+    function calculateLoan() {
+      const propertyValue = parseFloat(document.getElementById('propertyValue').value);
+      const brokerageRate = parseFloat(document.getElementById('brokerage').value);
+      const govChargesRate = parseFloat(document.getElementById('govCharges').value);
+      const downPayment = parseFloat(document.getElementById('downPayment').value);
+      const interestRate = parseFloat(document.getElementById('interestRate').value);
+      const tenureYears = parseInt(document.getElementById('tenure').value);
+      const includeRenovation = document.getElementById('includeRenovation').checked;
+      const renovationCost = includeRenovation ? parseFloat(document.getElementById('renovationCost').value) || 0 : 0;
+
+      const brokerage = (brokerageRate / 100) * propertyValue;
+      const govCharges = (govChargesRate / 100) * propertyValue;
+      const baseCost = propertyValue + brokerage + govCharges;
+      const totalCost = baseCost + renovationCost;
+      const loanAmount = totalCost - downPayment;
+
+      const monthlyInterestRate = interestRate / 100 / 12;
+      const totalMonths = tenureYears * 12;
+
+      const emi = loanAmount * monthlyInterestRate * Math.pow(1 + monthlyInterestRate, totalMonths) /
+                  (Math.pow(1 + monthlyInterestRate, totalMonths) - 1);
+
+      const totalPayment = emi * totalMonths;
+      const interestPaid = totalPayment - loanAmount;
+
+      let resultHTML = `<h3>Loan Summary</h3>`;
+      resultHTML += `<p><strong>Total Property Cost (Before Renovation):</strong> ₹${Math.round(baseCost).toLocaleString()} (${convertToWords(Math.round(baseCost))})</p>`;
+      if (renovationCost > 0) {
+        resultHTML += `<p><strong>Renovation Cost:</strong> ₹${Math.round(renovationCost).toLocaleString()} (${convertToWords(Math.round(renovationCost))})</p>`;
+      }
+      resultHTML += `<p><strong>Grand Total:</strong> ₹${Math.round(totalCost).toLocaleString()} (${convertToWords(Math.round(totalCost))})</p>`;
+      resultHTML += `<p><strong>Down Payment:</strong> ₹${Math.round(downPayment).toLocaleString()} (${convertToWords(Math.round(downPayment))})</p>`;
+      resultHTML += `<p><strong>Loan Amount:</strong> ₹${Math.round(loanAmount).toLocaleString()} (${convertToWords(Math.round(loanAmount))})</p>`;
+      resultHTML += `<p><strong>Monthly EMI:</strong> ₹${Math.round(emi).toLocaleString()} <span style="color:#666;">(${tenureYears} years)</span></p>`;
+      resultHTML += `<p><strong>Total Interest Paid:</strong> ₹${Math.round(interestPaid).toLocaleString()} (${convertToWords(Math.round(interestPaid))})</p>`;
+      resultHTML += `<p><strong>Total Payment (Principal + Interest):</strong> ₹${Math.round(totalPayment).toLocaleString()} (${convertToWords(Math.round(totalPayment))})</p>`;
+
+      document.getElementById('result').innerHTML = resultHTML;
+
+      const ctx = document.getElementById('loanChart').getContext('2d');
+      if (window.loanPieChart) {
+        window.loanPieChart.destroy();
+      }
+      
+      const animationOptions = {
+        animateScale: true,
+        animateRotate: true
+      };
+      window.loanPieChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: ['Principal', 'Interest'],
+          datasets: [{
+            label: 'Loan Breakdown',
+            data: [Math.round(loanAmount), Math.round(interestPaid)],
+            backgroundColor: ['#2b7cff', '#f59e0b'],
+            borderColor: ['#ffffff', '#ffffff'],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: 'bottom' }
+          }
+        }
+      });
+
+    }
+  </script>
+</body>
+</html>
