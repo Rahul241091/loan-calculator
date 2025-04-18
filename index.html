@@ -1,219 +1,145 @@
 
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Home Loan Calculator - Tabbed Layout</title>
-<style>
-    body {
-      background-color: #f5f7fa;
-      font-family: 'Segoe UI', sans-serif;
-      margin: 0;
-      padding: 20px;
-    }
-    .container {
-      display: flex;
-      max-width: 1000px;
-      margin: auto;
-      gap: 20px;
-    }
-    .tabs, .summary {
-      background-color: #fff;
-      border-radius: 10px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-      padding: 20px;
-    }
-    .tabs {
-      flex: 1;
-      min-width: 300px;
-    }
-    .summary {
-      flex: 1;
-      min-width: 280px;
-    }
-    h1 {
-      text-align: center;
-      color: #2b7cff;
-    }
-    label {
-      font-weight: 500;
-      margin-top: 12px;
-      display: block;
-    }
-    input[type=number], select, input[type=range] {
-      width: 100%;
-      padding: 10px;
-      margin-top: 5px;
-      margin-bottom: 10px;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      font-size: 1rem;
-    }
-    button {
-      width: 100%;
-      padding: 12px;
-      background-color: #2b7cff;
-      border: none;
-      color: white;
-      font-size: 1rem;
-      font-weight: bold;
-      border-radius: 6px;
-      margin-top: 20px;
-      cursor: pointer;
-    }
-    .helper {
-      font-size: 0.85rem;
-      color: #666;
-      margin-top: -5px;
-      margin-bottom: 10px;
-    }
-    .result p {
-      margin: 0.5rem 0;
-    }
-    .result h3 {
-      color: #2b7cff;
-    }
-  
-    @media (max-width: 768px) {
-      .container {
-        flex-direction: column;
-      }
-    }
-    </style>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script></head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>PropDash</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body { margin:0; font-family:'Inter',sans-serif; background:#f0f2f5; }
+    header { background:#fff; padding:16px; text-align:center; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
+    .logo-text { font-size:24px; font-weight:600; color:#2b7cff; vertical-align:middle; }
+    .logo-img { height:50px; vertical-align:middle; margin-left:8px; }
+    nav { background:#fff; text-align:center; padding:8px 0; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
+    nav button { background:none; border:none; padding:8px 16px; margin:0 4px; font-size:16px; cursor:pointer; }
+    nav button.active { background:#2b7cff; color:#fff; border-radius:4px; }
+    main { max-width:600px; margin:16px auto; padding:0 16px; }
+    .card { background:#fff; border-radius:8px; padding:16px; margin-bottom:16px; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
+    .summary { border-left:4px solid #2b7cff; }
+    .controls { border-left:4px solid #1a5edb; }
+    .summary h2, .controls h2 { margin:0 0 12px; font-size:20px; }
+    .input-group { display:flex; align-items:center; margin:12px 0; }
+    .input-group label { flex:1; font-size:16px; }
+    .input-group input[type=range] { flex:2; margin:0 8px; }
+    .input-group .value { width:auto; min-width:80px; max-width:120px; word-break:break-word; text-align:right; font-weight:600; }
+    .summary p { margin:8px 0; line-height:1.4; word-wrap:break-word; overflow-wrap:break-word; }
+    section { display:none; }
+    section.active { display:block; }
+  </style>
+</head>
 <body>
-<h1>Home Loan Calculator</h1>
-<div class="container">
-<div class="tabs">
-<label for="propertyValueSlider">Property Value (₹):</label>
-<input id="propertyValueSlider" max="13000000" min="7500000" step="100000" type="range" value="10000000"/>
-<input id="propertyValue" readonly="" type="number" value="10000000"/>
-<div class="helper" id="propertyValueInWords">(1 cr)</div>
-<label for="brokerage">Brokerage (%):</label>
-<select id="brokerage" onchange="calculateLoan()">
-<option selected="" value="1">1%</option>
-<option value="2">2%</option>
-</select>
-<label for="govCharges">Government Charges (%):</label>
-<select id="govCharges" onchange="calculateLoan()">
-<option selected="" value="7">7%</option>
-<option value="8">8%</option>
-<option value="9">9%</option>
-<option value="10">10%</option>
-</select>
-<label><input id="includeRenovation" onchange="calculateLoan()" type="checkbox"/> Include Renovation Cost</label>
-<input id="renovationCost" max="2000000" min="0" oninput="calculateLoan()" type="number" value="0"/>
-<div class="helper">(Optional: Add up to ₹20 lakh for home renovation)</div>
-<label for="downPayment">Down Payment (₹):</label>
-<input id="downPayment" min="1000000" oninput="calculateLoan()" step="100000" type="number" value="2500000"/>
-<label for="interestRate">Interest Rate (%):</label>
-<input id="interestRate" max="9" min="8.2" oninput="calculateLoan()" step="0.01" type="number" value="8.4"/>
-<label for="tenure">Loan Tenure (Years):</label>
-
-<select id="tenure" onchange="calculateLoan()">
-<option value="15">15</option>
-<option selected="" value="20">20</option>
-<option value="25">25</option>
-</select>
-</div>
-<div class="summary">
-<div class="result" id="result" style="display:block;"></div>
-<canvas height="300" id="loanChart" style="margin-top: 20px;" width="400"></canvas></div>
-</div>
-<script>
-    function convertToWords(amount) {
-      const crore = Math.floor(amount / 10000000);
-      const lakh = Math.floor((amount % 10000000) / 100000);
-      let parts = [];
-      if (crore > 0) parts.push(crore + " cr");
-      if (lakh > 0) parts.push(lakh + " lakh");
-      return parts.join(' ') || "0";
-    }
-
-    function updateSliderAndDisplay() {
-      const slider = document.getElementById("propertyValueSlider");
-      const value = parseInt(slider.value);
-      document.getElementById("propertyValue").value = value;
-      document.getElementById("propertyValueInWords").innerText = "(" + convertToWords(value) + ")";
-      calculateLoan();
-    }
-
-    document.addEventListener("DOMContentLoaded", function () {
-      document.getElementById("propertyValueSlider").addEventListener("input", updateSliderAndDisplay);
-      updateSliderAndDisplay(); // Initial run
-    });
-
-    function calculateLoan() {
-      const propertyValue = parseFloat(document.getElementById('propertyValue').value);
-      const brokerageRate = parseFloat(document.getElementById('brokerage').value);
-      const govChargesRate = parseFloat(document.getElementById('govCharges').value);
-      const downPayment = parseFloat(document.getElementById('downPayment').value);
-      const interestRate = parseFloat(document.getElementById('interestRate').value);
-      const tenureYears = parseInt(document.getElementById('tenure').value);
-      const includeRenovation = document.getElementById('includeRenovation').checked;
-      const renovationCost = includeRenovation ? parseFloat(document.getElementById('renovationCost').value) || 0 : 0;
-
-      const brokerage = (brokerageRate / 100) * propertyValue;
-      const govCharges = (govChargesRate / 100) * propertyValue;
-      const baseCost = propertyValue + brokerage + govCharges;
-      const totalCost = baseCost + renovationCost;
-      const loanAmount = totalCost - downPayment;
-
-      const monthlyInterestRate = interestRate / 100 / 12;
-      const totalMonths = tenureYears * 12;
-
-      const emi = loanAmount * monthlyInterestRate * Math.pow(1 + monthlyInterestRate, totalMonths) /
-                  (Math.pow(1 + monthlyInterestRate, totalMonths) - 1);
-
-      const totalPayment = emi * totalMonths;
-      const interestPaid = totalPayment - loanAmount;
-
-      let resultHTML = `<h3>Loan Summary</h3>`;
-      resultHTML += `<p><strong>Total Property Cost (Before Renovation):</strong> ₹${Math.round(baseCost).toLocaleString()} (${convertToWords(Math.round(baseCost))})</p>`;
-      if (renovationCost > 0) {
-        resultHTML += `<p><strong>Renovation Cost:</strong> ₹${Math.round(renovationCost).toLocaleString()} (${convertToWords(Math.round(renovationCost))})</p>`;
-      }
-      resultHTML += `<p><strong>Grand Total:</strong> ₹${Math.round(totalCost).toLocaleString()} (${convertToWords(Math.round(totalCost))})</p>`;
-      resultHTML += `<p><strong>Down Payment:</strong> ₹${Math.round(downPayment).toLocaleString()} (${convertToWords(Math.round(downPayment))})</p>`;
-      resultHTML += `<p><strong>Loan Amount:</strong> ₹${Math.round(loanAmount).toLocaleString()} (${convertToWords(Math.round(loanAmount))})</p>`;
-      resultHTML += `<p><strong>Monthly EMI:</strong> ₹${Math.round(emi).toLocaleString()} <span style="color:#666;">(${tenureYears} years)</span></p>`;
-      resultHTML += `<p><strong>Total Interest Paid:</strong> ₹${Math.round(interestPaid).toLocaleString()} (${convertToWords(Math.round(interestPaid))})</p>`;
-      resultHTML += `<p><strong>Total Payment (Principal + Interest):</strong> ₹${Math.round(totalPayment).toLocaleString()} (${convertToWords(Math.round(totalPayment))})</p>`;
-
-      document.getElementById('result').innerHTML = resultHTML;
-
-      const ctx = document.getElementById('loanChart').getContext('2d');
-      if (window.loanPieChart) {
-        window.loanPieChart.destroy();
-      }
-      
-      const animationOptions = {
-        animateScale: true,
-        animateRotate: true
-      };
-      window.loanPieChart = new Chart(ctx, {
-        type: 'pie',
-        data: {
-          labels: ['Principal', 'Interest'],
-          datasets: [{
-            label: 'Loan Breakdown',
-            data: [Math.round(loanAmount), Math.round(interestPaid)],
-            backgroundColor: ['#2b7cff', '#f59e0b'],
-            borderColor: ['#ffffff', '#ffffff'],
-            borderWidth: 1
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: { position: 'bottom' }
-          }
-        }
+  <header>
+    <span class="logo-text">PropDash by</span>
+    <img src="miraya-logo.png" alt="Miraya Labs Logo" class="logo-img"/>
+  </header>
+  <nav>
+    <button id="btnLoan">Loan</button>
+    <button id="btnFair">Fair Price</button>
+    <button id="btnPPSF">Price/SqFt</button>
+  </nav>
+  <main>
+    <section id="loan" class="active">
+      <div class="card summary">
+        <h2>Loan Summary</h2>
+        <div id="loanSummary"></div>
+      </div>
+      <div class="card controls">
+        <h2>Loan Calculator</h2>
+        <div class="input-group"><label>Property Value</label><input type="range" id="pvSlider" min="3000000" max="15000000" step="100000" value="10000000"/><div class="value" id="pvValue"></div></div>
+        <div class="input-group"><label>Brokerage (%)</label><input type="range" id="brSlider" min="1" max="2" step="0.1" value="1"/><div class="value" id="brValue"></div></div>
+        <div class="input-group"><label>Govt Charges (%)</label><input type="range" id="gcSlider" min="7" max="10" step="0.1" value="7"/><div class="value" id="gcValue"></div></div>
+        <div class="input-group"><label>Renovation</label><input type="range" id="renSlider" min="0" max="2000000" step="100000" value="0"/><div class="value" id="renValue"></div></div>
+        <div class="input-group"><label>Down Payment</label><input type="range" id="dpSlider" min="1000000" max="15000000" step="100000" value="2500000"/><div class="value" id="dpValue"></div></div>
+        <div class="input-group"><label>Interest Rate (%)</label><input type="range" id="irSlider" min="8.2" max="9" step="0.01" value="8.4"/><div class="value" id="irValue"></div></div>
+        <div class="input-group"><label>Tenure (yrs)</label><input type="range" id="tnSlider" min="15" max="25" step="1" value="20"/><div class="value" id="tnValue"></div></div>
+      </div>
+    </section>
+    <section id="fair">
+      <div class="card controls">
+        <h2>Fair Price Estimator</h2>
+        <div class="input-group"><label>Monthly Rent</label><input type="range" id="rentSlider" min="10000" max="50000" step="1000" value="20000"/><div class="value" id="rentValue"></div></div>
+        <div class="input-group"><label>Rental Yield (%)</label><input type="range" id="yieldSlider" min="3" max="10" step="0.1" value="4"/><div class="value" id="yieldValue"></div></div>
+      </div>
+      <div class="card summary">
+        <h2>Fair Price Summary</h2>
+        <div id="fairSummary"></div>
+      </div>
+    </section>
+    <section id="ppsf">
+      <div class="card controls">
+        <h2>Price/Sq Ft Calculator</h2>
+        <div class="input-group"><label>Property Value</label><input type="range" id="ppvfSlider" min="3000000" max="15000000" step="100000" value="10000000"/><div class="value" id="ppvfValue"></div></div>
+        <div class="input-group"><label>Area (sqft)</label><input type="range" id="areaSlider" min="500" max="2000" step="1" value="1000"/><div class="value" id="areaValue"></div></div>
+      </div>
+      <div class="card summary">
+        <h2>Price/Sq Ft Summary</h2>
+        <div id="ppsfSummary"></div>
+      </div>
+    </section>
+  </main>
+  <script>
+    // Tab logic
+    const tabs = {btnLoan:'loan',btnFair:'fair',btnPPSF:'ppsf'};
+    Object.keys(tabs).forEach(id=>{
+      document.getElementById(id).addEventListener('click',()=>{
+        Object.values(tabs).forEach(sec=>document.getElementById(sec).classList.remove('active'));
+        Object.keys(tabs).forEach(btn=>document.getElementById(btn).classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        document.getElementById(tabs[id]).classList.add('active');
       });
-
+    });
+    // Formatting
+    const fmt=x=>x.toLocaleString('en-IN'),
+          fmtWords=x=>{const c=Math.floor(x/10000000),l=Math.floor((x%10000000)/100000),p=[];if(c)p.push(c+' cr');if(l)p.push(l+' lakh');return p.join(' ')||'0';};
+    // Loan
+    const pvS=document.getElementById('pvSlider'),pvV=document.getElementById('pvValue'),
+          brS=document.getElementById('brSlider'),brV=document.getElementById('brValue'),
+          gcS=document.getElementById('gcSlider'),gcV=document.getElementById('gcValue'),
+          renS=document.getElementById('renSlider'),renV=document.getElementById('renValue'),
+          dpS=document.getElementById('dpSlider'),dpV=document.getElementById('dpValue'),
+          irS=document.getElementById('irSlider'),irV=document.getElementById('irValue'),
+          tnS=document.getElementById('tnSlider'),tnV=document.getElementById('tnValue'),
+          sumLoan=document.getElementById('loanSummary');
+    function updateLoan(){
+      const pv=+pvS.value,br=+brS.value,gc=+gcS.value,ren=+renS.value,dp=+dpS.value,ir=+irS.value,tn=+tnS.value;
+      pvV.innerText='₹'+fmt(pv);brV.innerText=br+'%';gcV.innerText=gc+'%';renV.innerText='₹'+fmt(ren);
+      dpV.innerText='₹'+fmt(dp);irV.innerText=ir+'%';tnV.innerText=tn+' yrs';
+      const base=pv*(1+br/100+gc/100),total=base+ren,loanAmt=total-dp,r=ir/100/12,n=tn*12,
+            emi=loanAmt*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1),totalPay=emi*n,interest=totalPay-loanAmt;
+      sumLoan.innerHTML=`<p><strong>Total Property Cost (Before Renovation):</strong> ₹${fmt(Math.round(base))} (${fmtWords(Math.round(base))})</p>`+
+        (ren>0?`<p><strong>Renovation Cost:</strong> ₹${fmt(ren)} (${fmtWords(ren)})</p>`:'')+
+        `<p><strong>Grand Total:</strong> ₹${fmt(Math.round(total))} (${fmtWords(Math.round(total))})</p>`+
+        `<p><strong>Down Payment:</strong> ₹${fmt(dp)} (${fmtWords(dp)})</p>`+
+        `<p><strong>Loan Amount:</strong> ₹${fmt(Math.round(loanAmt))} (${fmtWords(Math.round(loanAmt))})</p>`+
+        `<p><strong>Monthly EMI:</strong> ₹${fmt(Math.round(emi))} (${tn} yrs)</p>`+
+        `<p><strong>Total Interest Paid:</strong> ₹${fmt(Math.round(interest))}</p>`+
+        `<p><strong>Total Payment (Principal + Interest):</strong> ₹${fmt(Math.round(totalPay))}</p>`;
     }
+    [pvS,brS,gcS,renS,dpS,irS,tnS].forEach(e=>e.oninput=updateLoan);
+    // Fair
+    const rentS=document.getElementById('rentSlider'),rentV=document.getElementById('rentValue'),
+          yS=document.getElementById('yieldSlider'),yV=document.getElementById('yieldValue'),
+          sumFair=document.getElementById('fairSummary');
+    function updateFair(){
+      const rent=+rentS.value,y=+yS.value;rentV.innerText='₹'+fmt(rent);yV.innerText=y+'%';
+      const price=rent*12/(y/100);sumFair.innerHTML=`<p>₹${fmt(Math.round(price))}</p>`;
+    }
+    [rentS,yS].forEach(e=>e.oninput=updateFair);
+    // PPSF
+    const ppS=document.getElementById('ppvfSlider'),ppV=document.getElementById('ppvfValue'),
+          arS=document.getElementById('areaSlider'),arV=document.getElementById('areaValue'),
+          sumPsf=document.getElementById('ppsfSummary');
+    function updatePsf(){
+      const v=+ppS.value,a=+arS.value;ppV.innerText='₹'+fmt(v);arV.innerText=a+' sqft';
+      const p=v/a;sumPsf.innerHTML=`<p>₹${fmt(Math.round(p))}</p>`;
+    }
+    [ppS,arS].forEach(e=>e.oninput=updatePsf);
+    document.addEventListener('DOMContentLoaded',()=>{
+      updateLoan();updateFair();updatePsf();
+      document.getElementById('btnLoan').classList.add('active');
+      document.getElementById('loan').classList.add('active');
+    });
   </script>
 </body>
 </html>
